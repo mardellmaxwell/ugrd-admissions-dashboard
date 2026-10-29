@@ -509,7 +509,7 @@ function vPrograms(){
   '<section class="panel"><div class="ph"><div><h2>All programs</h2><p>'+D.yrs[1]+' value with the change from '+D.yrs[0]+'. Click a header to sort.</p></div></div><div class="tw"><table><thead><tr><th>Program</th>'+th+'</tr></thead><tbody>'+tbl+'</tbody></table></div><p class="note">Click a program to list the majors under it. '+D.rateNote+' '+D.pnote+'</p></section>';
 }
 
-function vSpeed(){const h0=vSpeed0();return D.key==='ftic'?h0+vPend()+vTrx()+vDocq():h0+vPend()+vDocqT()}
+function vSpeed(){const h0=vSpeed0();return D.key==='ftic'?h0+vGauge()+vPend()+vTrx()+vDocq():h0+vPend()+vDocqT()}
 function vSpeed0(){
   const k=S.stat, max=mx(D.PT.flatMap(p=>p[k]));
   const cards=D.PT.map(p=>'<div class="tile"><div class="t">'+p.t+'</div><div class="d" style="margin-bottom:10px">'+p.s+'</div>'+pair(p[k],max,v=>v.toFixed(1)+' d',p.t)+'<div class="d" style="margin-top:10px">'+dl(p[k][0],p[k][1],{pol:-1,kind:'days'})+' · n = '+n0(p.n[0])+' / '+n0(p.n[1])+'</div></div>').join('');
@@ -2099,6 +2099,38 @@ function vTrx(){
   return ins+'<section class="panel"><div class="ph"><div><h2>Transcript to GPA time, Fall 2027</h2><p>Days from the first high school transcript (self report, hard copy or EDI) to a calculated GPA. '+n0(Z.doc)+' first-time students have a transcript so far.</p></div></div>'+tiles+
    '<h3 style="margin:16px 0 6px;font-size:14px">By admit type</h3>'+t1+'<h3 style="margin:18px 0 6px;font-size:14px">By how the first transcript arrived</h3>'+t2+
    '<h3 style="margin:18px 0 4px;font-size:14px">Which transcript came first</h3>'+bar+'<p class="note">Source: '+Z.src+'. Excludes students whose GPA date is before the transcript date.</p></section>';
+}
+
+const GAUGE={"cur": {"dec": 6725, "tot": 9528, "pend": 2803, "wl": 259, "pct": 70.58144416456759, "pct7": 75.81939799331103, "made7": 2191, "new7": 3548, "bk": [["0\u20136 days", 2027], ["7\u201313 days", 428], ["14\u201320 days", 172], ["21+ days", 176]], "cut": "10/28"}, "last": {"dec": 5664, "tot": 7861, "pend": 2197, "wl": 0, "pct": 72.05190179366492, "pct7": 73.15605590062113, "made7": 1895, "new7": 2709, "bk": [["0\u20136 days", 1223], ["7\u201313 days", 544], ["14\u201320 days", 206], ["21+ days", 224]], "cut": "10/28"}};
+function vGauge(){
+  if(D.key!=='ftic')return '';
+  const C=GAUGE.cur, L=GAUGE.last, pct=C.pct, W=420, cx=W/2, cy=210, R=165, sw=34;
+  const ang=p=>Math.PI*(1-p/100), pt=(p,r)=>[cx+r*Math.cos(ang(p)), cy-r*Math.sin(ang(p))];
+  const arc=(p0,p1,r)=>{const a=pt(p0,r), b=pt(p1,r); return 'M'+a[0].toFixed(1)+','+a[1].toFixed(1)+' A'+r+','+r+' 0 0 1 '+b[0].toFixed(1)+','+b[1].toFixed(1)};
+  const tick=(p,r1,r2,col,w)=>{const a=pt(p,r1), b=pt(p,r2); return '<line x1="'+a[0].toFixed(1)+'" y1="'+a[1].toFixed(1)+'" x2="'+b[0].toFixed(1)+'" y2="'+b[1].toFixed(1)+'" stroke="'+col+'" stroke-width="'+w+'"/>'};
+  const lab=[0,25,50,75,100].map(p=>{const a=pt(p,R+sw/2+14);return '<text x="'+a[0].toFixed(1)+'" y="'+(a[1]+4).toFixed(1)+'" font-size="11" fill="currentColor" opacity=".6" text-anchor="middle">'+p+'%</text>'}).join('');
+  const needle=(()=>{const a=pt(pct,R-sw/2-8), b=pt(pct,0);return '<line x1="'+cx+'" y1="'+cy+'" x2="'+a[0].toFixed(1)+'" y2="'+a[1].toFixed(1)+'" stroke="#1f2a37" stroke-width="3" stroke-linecap="round"/><circle cx="'+cx+'" cy="'+cy+'" r="7" fill="#1f2a37"/>'})();
+  const lp=pt(L.pct,R+sw/2+4), lq=pt(L.pct,R+sw/2+22);
+  const svg='<svg viewBox="0 0 '+W+' 280" style="width:100%;max-width:520px;height:auto;color:var(--ink)" role="img" aria-label="Gauge: '+pct.toFixed(1)+' percent of priority-deadline FTIC files decided">'+
+   '<path d="'+arc(0,100,R)+'" fill="none" stroke="var(--line)" stroke-width="'+sw+'"/>'+
+   '<path d="'+arc(0,pct,R)+'" fill="none" stroke="#75A4E4" stroke-width="'+sw+'"/>'+
+   tick(L.pct,R-sw/2-2,R+sw/2+4,'#C80F2E',3)+lab+needle+
+   '<text x="'+cx+'" y="'+(cy+46)+'" font-size="40" font-weight="700" text-anchor="middle" fill="currentColor">'+pct.toFixed(1)+'%</text>'+
+   '<text x="'+cx+'" y="'+(cy+66)+'" font-size="12" text-anchor="middle" fill="currentColor" opacity=".7">decided</text></svg>';
+  const rate=C.made7/7, days=rate>0?Math.ceil(C.pend/rate):null, left=Math.round((new Date(2026,10,9)-new Date(2026,9,28))/864e5);
+  const mx=Math.max(...C.bk.map(b=>b[1]));
+  const bars=C.bk.map(b=>'<div class="row"><div class="lab">'+b[0]+'</div><div style="display:flex;align-items:center;gap:10px;flex:1"><div style="flex:1;height:12px;background:var(--line);border-radius:6px"><div style="width:'+(b[1]/mx*100).toFixed(0)+'%;height:12px;background:'+(b[0]==='21+ days'||b[0]==='14–20 days'?'#C80F2E':'#75A4E4')+';border-radius:6px"></div></div><b style="min-width:52px;text-align:right">'+n0(b[1])+'</b></div></div>').join('');
+  const gap=pct-L.pct, ahead=gap>=0;
+  const ins=insights([
+   [days!=null&&days<=left?'good':'watch','At the last 7 days\' pace, today\'s backlog clears in about '+days+' days','The office decided '+n0(C.made7)+' priority-cohort files in the last 7 days (about '+n0(Math.round(rate))+' a day) against '+n0(C.pend)+' still pending. That is '+(days<=left?'before':'after')+' Nov 9, '+left+' days out. New completions keep arriving, though: '+n0(C.new7)+' files were added to the cohort in the last 7 days, so the real finish line moves until the deadline passes.'],
+   [Math.abs(gap)<1?'ctx':(ahead?'good':'watch'),'The gauge is '+(Math.abs(gap)<1?'level with':(ahead?'ahead of':'behind'))+' last year at this point','This year '+pct.toFixed(1)+'% of completed files have a decision; last year at 10/28 it was '+L.pct.toFixed(1)+'% ('+n0(L.pend)+' pending of '+n0(L.tot)+').'+(C.wl?' '+n0(C.wl)+' waitlisted files are a hold group and are left out of both the numerator and the denominator.':'')],
+   ['ctx','How this is measured','Fall 2027 first-time freshmen (unique students) whose file was completed on or before Nov 9, our priority deadline, and who have no waitlist hold. Decided = admitted or denied through '+C.cut+'. Only files completed through '+C.cut+' exist so far, so the denominator will grow until Nov 9. Last year is the same cohort definition (complete on or before Nov 9, 2025) at the same date.']
+  ]);
+  const tiles='<div class="tiles"><div class="tile"><div class="t">Still pending</div><div class="big"><b class="b">'+n0(C.pend)+'</b></div><div class="d">of '+n0(C.tot)+' completed files</div></div>'+
+   '<div class="tile"><div class="t">Last year, same date</div><div class="big"><b>'+L.pct.toFixed(1)+'%</b></div><div class="d">'+n0(L.pend)+' pending then</div></div>'+
+   '<div class="tile"><div class="t">Decided, last 7 days</div><div class="big"><b>'+n0(C.made7)+'</b></div><div class="d">About '+n0(Math.round(rate))+' a day</div></div>'+
+   '<div class="tile"><div class="t">Days to 100% at this pace</div><div class="big"><b style="color:var(--'+(days<=left?'good':'bad')+')">'+days+'</b></div><div class="d">Priority deadline is '+left+' days out</div></div></div>';
+  return ins+'<section class="panel"><div class="ph"><div><h2>Road to 100% decided: priority-deadline FTICs</h2><p>Fall 2027 freshmen who complete their application on or before Nov 9. The red tick marks where this group stood last year on the same date.</p></div></div>'+tiles+'<div style="display:flex;flex-wrap:wrap;gap:24px;align-items:center"><div style="flex:1 1 340px;text-align:center">'+svg+'</div><div style="flex:1 1 300px"><div style="font-weight:600;margin-bottom:8px">Pending files by days since completed</div>'+bars+'</div></div></section>';
 }
 
 const FDR={"week": "2026-10-12", "days": ["2026-10-12", "2026-10-13", "2026-10-14", "2026-10-15", "2026-10-16", "2026-10-17", "2026-10-18"], "snaps": [{"s": "2026-10-13", "all": [0, 0, 0, 0, 0, 0, 0], "ftic": [0, 0, 0, 0, 0, 0, 0]}, {"s": "2026-10-14", "all": [1914, 0, 0, 0, 0, 0, 0], "ftic": [1699, 0, 0, 0, 0, 0, 0]}, {"s": "2026-10-15", "all": [2579, 1095, 0, 0, 0, 0, 0], "ftic": [2259, 911, 0, 0, 0, 0, 0]}, {"s": "2026-10-16", "all": [2640, 1880, 1265, 49, 0, 0, 0], "ftic": [2318, 1604, 1085, 26, 0, 0, 0]}, {"s": "2026-10-19", "all": [2640, 1880, 1263, 49, 3, 1, 0], "ftic": [2318, 1603, 1084, 26, 3, 0, 0]}, {"s": "2026-10-20", "all": [2639, 1880, 1974, 1327, 2, 1, 0], "ftic": [2317, 1604, 1718, 1137, 2, 0, 0]}, {"s": "2026-10-21", "all": [2638, 1879, 1974, 1326, 2, 1, 0], "ftic": [2316, 1605, 1719, 1137, 2, 0, 0]}, {"s": "2026-10-22", "all": [2638, 1879, 1974, 2000, 1490, 1638, 5204], "ftic": [2316, 1605, 1719, 1757, 1349, 1503, 4797]}, {"s": "2026-10-23", "all": [2638, 1878, 1974, 2135, 1821, 2030, 6478], "ftic": [2316, 1605, 1719, 1879, 1651, 1856, 5997]}, {"s": "2026-10-27", "all": [2639, 1879, 1974, 2134, 1820, 2032, 6843], "ftic": [2318, 1606, 1720, 1879, 1651, 1858, 6351]}, {"s": "2026-10-28", "all": [2639, 1879, 1974, 2134, 1820, 2032, 6842], "ftic": [2318, 1606, 1719, 1879, 1651, 1857, 6349]}, {"s": "2026-10-29", "all": [2639, 1879, 1974, 2134, 1819, 2032, 6842], "ftic": [2318, 1606, 1719, 1879, 1650, 1857, 6349]}], "stale": ["2026-10-17", "2026-10-24"], "ly": [519, 1873, 1807, 1630, 1520, 1829, 2540]};
